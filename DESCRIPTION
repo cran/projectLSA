@@ -1,0 +1,53 @@
+Package: projectLSA
+Title: Latent Structure Analysis Toolkit
+Version: 0.0.3
+Authors@R: 
+    c(
+      person(
+        given = "Hasan",
+        family = "Djidu",
+        email = "hasandjidu@gmail.com",
+        role = c("aut", "cre"),
+        comment = c(ORCID = "0000-0003-1110-6815")
+      ),
+      person(
+        given = "Heri",
+        family = "Retnawati",
+        role = "ctb",
+        comment = c(ORCID = "0000-0002-1792-5873")
+      ),
+      person(
+        given = "Samsul",
+        family = "Hadi",
+        role = "ctb",
+        comment = c(ORCID = "0000-0003-3437-2542")
+      ),
+      person(
+        given = "Haryanto",
+        family = "",
+        role = "ctb",
+        comment = c(ORCID = "0000-0003-3322-904X")
+      )
+    )
+Description: Provides an interactive Shiny-based toolkit for conducting latent structure analyses, including Latent Profile Analysis (LPA), Latent Class Analysis (LCA), Latent Trait Analysis (LTA/IRT), Exploratory Factor Analysis (EFA), Confirmatory Factor Analysis (CFA), and Structural Equation Modeling (SEM). The implementation is grounded in established methodological frameworks: LPA is supported through 'tidyLPA' (Rosenberg et al., 2018) <doi:10.21105/joss.00978>, LCA through 'poLCA' (Linzer & Lewis, 2011), LTA/IRT via 'mirt' (Chalmers, 2012) <doi:10.18637/jss.v048.i06>, and EFA via 'psych' (Revelle, 2025). SEM and CFA functionalities build upon the 'lavaan' framework (Rosseel, 2012) <doi:10.18637/jss.v048.i02>. Users can upload datasets or use built-in examples, fit models, compare fit indices, visualize results, and export outputs without programming.
+License: MIT + file LICENSE
+Depends: R (>= 4.0.0)
+Encoding: UTF-8
+Imports: colourpicker, dplyr, DT, ggiraph, ggplot2, lavaan, mirt,
+        plotly, poLCA, psych, purrr, readr, readxl, rlang, semPlot,
+        semptools, semTools, shiny, shinyWidgets, stringr, tibble,
+        tidyr, tidyLPA, viridisLite
+Suggests: knitr, pkgdown, rmarkdown
+RoxygenNote: 7.3.3
+VignetteBuilder: knitr
+URL: https://github.com/hasandjidu/projectLSA
+BugReports: https://github.com/hasandjidu/projectLSA/issues
+NeedsCompilation: no
+Packaged: 2025-12-04 12:08:53 UTC; hasandjidu
+Author: Hasan Djidu [aut, cre] (ORCID: <https://orcid.org/0000-0003-1110-6815>),
+  Heri Retnawati [ctb] (ORCID: <https://orcid.org/0000-0002-1792-5873>),
+  Samsul Hadi [ctb] (ORCID: <https://orcid.org/0000-0003-3437-2542>),
+  Haryanto [ctb] (ORCID: <https://orcid.org/0000-0003-3322-904X>)
+Maintainer: Hasan Djidu <hasandjidu@gmail.com>
+Repository: CRAN
+Date/Publication: 2025-12-10 20:50:02 UTC
