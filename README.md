@@ -1,6 +1,23 @@
 
 # projectLSA <img src="man/figures/logoProjectLSA.png" align="right" width="120" />
 
+<!-- badges: start -->
+
+[![CRAN
+status](https://www.r-pkg.org/badges/version/projectLSA)](https://CRAN.R-project.org/package=projectLSA)
+[![Downloads](https://cranlogs.r-pkg.org/badges/projectLSA)](https://cranlogs.r-pkg.org/badges/projectLSA)
+[![Total
+Downloads](https://cranlogs.r-pkg.org/badges/grand-total/projectLSA)](https://cranlogs.r-pkg.org/badges/grand-total/projectLSA)
+
+[![R-CMD-check](https://github.com/hasandjidu/projectLSA/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/hasandjidu/projectLSA/actions/workflows/R-CMD-check.yaml)
+
+[![License:
+MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Lifecycle:
+stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+
+<!-- badges: end -->
+
 projectLSA is an R package that provides a complete graphical user
 interface (GUI) for conducting **Latent Structure Analysis (LSA)**
 through a Shiny application. It integrates multiple latent variable
@@ -24,7 +41,7 @@ package accessible for researchers, students, and applied analysts.
 install.packages("projectLSA")
 
 # Install development version from GitHub (optional)
-# remotes::install_github("hasandjidu/projectLSA")
+remotes::install_github("hasandjidu/projectLSA")
 ```
 
 ------------------------------------------------------------------------
@@ -81,8 +98,27 @@ upload, built-in datasets, interactive plots, and reporting features.
 
 ## Example Screenshots
 
- <img src="man/figures/lpa_example.png" align="center" width="120" />
- <img src="man/figures/lpa_example2.png" align="center" width="120" />
+### LPA (Latent Profile Analysis)
+
+![LPA3](man/figures/LPA3.png) ![LPA4](man/figures/LPA4.png)
+
+### LCA (Latent Class Analysis)
+
+<<<<<<< HEAD
+![LCA2](man/figures/LCA2.png) ![LCA3](man/figures/LCA3.png) 
+
+### CFA (Confirmatory Factor Analysis) & SEM (Structural Equation Modelling)
+=======
+![LCA2](man/figures/LCA2.png) ![LCA3](man/figures/LCA3.png)
+
+### CFA (Confirmatory Factor Analysis) & SEM (Structural Equation Modelling)
+
+![CFA4](man/figures/CFA4.png) ![CFA7](man/figures/CFA7.png)
+![SEM](man/figures/SEM.png)
+
+### LTA (Latent Trait Analysis/ IRT)
+
+![LTA3](man/figures/LTA3.png) ![LTA6](man/figures/LTA6.png)
 
 ------------------------------------------------------------------------
 
@@ -90,9 +126,9 @@ upload, built-in datasets, interactive plots, and reporting features.
 
 If you use projectLSA in publications, please cite:
 
-Djidu, H., Retnawati, H., Hadi, S., & Haryanto (2025). *projectLSA: An R
+Djidu, H., Retnawati, H., Hadi, S., & Haryanto (2026). *projectLSA:R
 Shiny application for latent structure analysis with a graphical user
-interface.*
+interface. <https://doi.org/10.32614/CRAN.package.projectLSA>*
 
 ------------------------------------------------------------------------
 
@@ -106,4 +142,4 @@ Bug reports and feature requests are welcome:
 
 ## License
 
-MIT License © 2025 Hasan Djidu
+MIT License © 2026 Hasan Djidu

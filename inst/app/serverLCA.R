@@ -1,37 +1,36 @@
-# LCA -----
 # ==== Reactive Data LCA ====
 server_lca <- function(input, output, session) {
   library(poLCA)
   library(tidyverse)
   library(ggiraph)
+  best_c_r <- reactiveVal(NULL)
+  set.seed(100)
 observeEvent(input$run_lca, {
   req(data_lca(), input$vars_lca)
   updateTabsetPanel(session, "main_tab_lca", selected = "fit_tab_lca")
 })
 data_lca <- reactive({
   if (input$data_source_lca == "simdata3class") {
-    df <- poLCA::poLCA.simdata(N=2000, nclass=3,ndv=3)$dat %>% rownames_to_column("id_auto")
+    df <- get("cheating", envir = asNamespace("poLCA")) %>% rownames_to_column("id_auto")
     
   } else if (input$data_source_lca == "simdata4class") {
-    df <- poLCA::poLCA.simdata(N=3000, nclass=4,ndv=4)$dat%>% rownames_to_column("id_auto")
+    df <- poLCA::poLCA.simdata(N=3000, nclass=3,ndv=5)$dat%>% rownames_to_column("id_auto")
     
   } else if(input$data_source_lca == "simdata5class") {
-    df <- poLCA::poLCA.simdata(N=4000, nclass=5,ndv=5)$dat%>% rownames_to_column("id_auto")
+    df <- poLCA::poLCA.simdata(N=4000, nclass=4,ndv=5)$dat%>% rownames_to_column("id_auto")
     
   } else if (input$data_source_lca == "simdata6class") {
-    df <- poLCA::poLCA.simdata(N=5000, nclass=6,ndv=6)$dat%>% rownames_to_column("id_auto")
+    df <- poLCA::poLCA.simdata(N=5000, nclass=4,ndv=6)$dat%>% rownames_to_column("id_auto")
     
   } else if (input$data_source_lca == "simdata7class") {
-    df <- poLCA::poLCA.simdata(N=6000, nclass=7,ndv=7)$dat%>% rownames_to_column("id_auto")
+    df <- poLCA::poLCA.simdata(N=6000, nclass=4,ndv=7)$dat%>% rownames_to_column("id_auto")
     
   } else {
     req(input$datafile_lca)
     ext <- tools::file_ext(input$datafile_lca$name)
     df <- if(ext == "csv") read.csv(input$datafile_lca$datapath) else readxl::read_excel(input$datafile_lca$datapath)
-    df <- df %>% mutate(across(everything(), ~ifelse(.x=="", NA, .x)))
-    if(!"id" %in% tolower(names(df))) {
-      df <- df %>% mutate(id_auto = sprintf("id_%04d", 1:n()))
-    }
+    df <- df %>% mutate(across(everything(), ~ifelse(.x=="", NA, .x)),
+                        id_auto = paste0("id_", sprintf("%04d", 1:n())))
   }
   return(na.omit(df))
 })
@@ -39,38 +38,36 @@ data_lca <- reactive({
 # ==== Pilih ID ====
 output$id_select_ui_lca <- renderUI({
   req(data_lca())
-  selectizeInput(
+  selectInput(
     "id_lca",
     label = "Select ID Columns (Optional):",
     choices = names(data_lca()),
     selected = names(data_lca())[str_detect(names(data_lca()), "id")],
-    multiple = TRUE,
-    options = list(placeholder = 'Choose one or more ID columns')
-  )
+    multiple = TRUE
+    )
 })
 
 # ==== Pilih variabel ====
 output$var_select_ui_lca <- renderUI({
   req(data_lca())
-  selectizeInput(
+  selectInput(
     "vars_lca",
     label = "Select Variables for LCA:",
     choices = names(data_lca()),
     selected = names(data_lca()%>% dplyr::select(-c(id_auto)))[1:min(5,ncol(data_lca()))],
-    multiple = TRUE,
-    options = list(placeholder = 'Choose variables to include in analysis')
-  )
+    multiple = TRUE  )
 })
+
+observeEvent(c(input$data_source_lca, input$datafile_lca), {
+  updateSelectInput(session,"vars_lca",selected = "") 
+}, ignoreInit = TRUE)
 
 # ==== Preview Data ====
 output$data_preview_lca <- DT::renderDT({
   req(data_lca(), input$vars_lca)
+  df <- data_lca() %>% dplyr::select(input$vars_lca)
+  numeric_cols <- which(sapply(df, function(x) is.numeric(x)))
   
-  df <- data_lca()[, input$vars_lca]
-  # Batasi 3 digit di belakang koma untuk kolom numerik
-  # df <- df %>%
-  #   dplyr::mutate(across(where(is.numeric), ~ round(.x, 3)))
-  numeric_cols <- which(sapply(df, is.numeric))
   DT::datatable(df,extensions = 'Buttons',
                 options = list(scrollX = TRUE, dom = 'Brtp',
                                buttons = list(
@@ -85,8 +82,41 @@ output$data_preview_lca <- DT::renderDT({
                                    filename = paste0('Data LCA')
                                  ))),
                 rownames = TRUE) %>% 
-    formatRound(columns = numeric_cols, digits = 2)
-})
+    formatRound(columns = numeric_cols, digits = 0)
+}, server = FALSE)
+
+
+output$data_summary_lca <- DT::renderDT({
+  req(data_lca(), input$vars_lca)
+  df <- data_lca() %>% dplyr::select(input$vars_lca)
+  # Pastikan semuanya character (aman untuk join)
+  df_chr <- df %>% dplyr::mutate(across(everything(), as.character))
+  # Buat kolom join (kombinasi respons)
+  df_chr$Respon <- apply(df_chr, 1, paste0, collapse = "-")
+  
+  # Tabel frekuensi
+  freq_table <- df_chr %>%
+    dplyr::count(Respon, name = "Freq") %>%
+    dplyr::mutate(
+      Percent = round(100 * Freq / sum(Freq), 2)
+    ) %>%
+    dplyr::arrange(dplyr::desc(Freq))
+  
+  DT::datatable(freq_table,extensions = 'Buttons',
+                options = list(scrollX = TRUE, dom = 'Bt',
+                               buttons = list(
+                                 list(
+                                   extend = 'csv',
+                                   text = 'Export CSV',
+                                   filename = paste0('Data LCA')  
+                                 ),
+                                 list(
+                                   extend = 'excel',
+                                   text = 'Export Excel',
+                                   filename = paste0('Data LCA')
+                                 ))),
+                rownames = TRUE)
+}, server = FALSE)
 
 # ==== Fit LCA ====
 lca_models <- eventReactive(input$run_lca, {
@@ -100,9 +130,9 @@ lca_models <- eventReactive(input$run_lca, {
   max_k <- input$max_class_lca
   
   model_list <- list()
-  withProgress(message = "Running LCA Models...", value = 0, {
+  withProgress(message = "Running...", {
     for(k in min_k:max_k){
-      incProgress(1/(max_k-min_k+1), detail = paste("Fitting LCA with", k, "Classes"))
+      incProgress(1/(max_k-min_k+1), detail = paste("LCA with", k, "Classes"))
       model_list[[as.character(k)]] <- tryCatch({
         poLCA::poLCA(formula, dat, nclass=k, verbose=FALSE)
       }, error = function(e) NULL)
@@ -111,20 +141,58 @@ lca_models <- eventReactive(input$run_lca, {
   model_list
 })
 
+# FUNCTION TO CALCULATION OF LCA -----
+APCP_poLCA <- function(fit) {
+  post <- fit$posterior
+  cls  <- fit$predclass
+  K <- ncol(post)
+  APCP_class <- sapply(1:K, function(k) {
+    mean(post[cls == k, k])
+  })
+  
+  APCP_overall <- mean(post[cbind(1:nrow(post), cls)])
+  APCP_byclass <- mean(APCP_class)
+  min_Prob <- min(post[cbind(1:nrow(post), cls)])
+  
+  list(
+    APCP_per_class = APCP_class,
+    APCP_overall  = APCP_overall,
+    APCP_byClass = APCP_byclass,
+    min_Prob = min_Prob
+  )
+}
+entropy_poLCA <- function(fit) {
+  post <- fit$posterior
+  N <- nrow(post)
+  K <- ncol(post)
+  E <- - sum(post * log(post))
+  
+  1 - E / (N * log(K))
+  entropy <- 1 - E / (N * log(K))
+  
+  return(entropy)
+}
 # ==== Fit Table ====
 fit_lca <- reactive({
   req(lca_models())
-  fit <- data.frame(N_class=integer(), AIC=numeric(), BIC=numeric(), Gsq=numeric(), Chisq=numeric(), resid.df=numeric())
+  set.seed(123)
+  fit <- data.frame(N_class=integer(), AIC=numeric(), BIC=numeric(), Gsq=numeric(), Chisq=numeric(), resid.df=numeric(), 
+                    Entropy =numeric(), APCP_byClass=numeric(), APCP_overall=numeric(), Min_Prob = numeric())
   for(k in names(lca_models())){
     m <- lca_models()[[k]]
     if(!is.null(m)){
       fit <- rbind(fit, data.frame(
         N_class = k,
-        AIC = m$aic,
-        BIC = m$bic,
-        Gsq = m$Gsq,
-        Chisq = m$Chisq,
-        resid.df = m$resid.df
+        AIC = round(m$aic,3),
+        BIC = round(m$bic,3),
+        Gsq = round(m$Gsq,3),
+        Chisq = round(m$Chisq,3),
+        Resid.df = m$resid.df,
+        #Entropy = round(entropy_poLCA(m),3) ,
+        # Entropy = poLCA.entropy(m),
+        #APCP_overall =round(APCP_poLCA(m)$APCP_overall,3) 
+        Min_Prob = round(APCP_poLCA(m)$min_Prob,3),
+        Av_Prob = round(APCP_poLCA(m)$APCP_byClass,3)
       ))
     }
   }
@@ -134,6 +202,14 @@ fit_lca <- reactive({
 # ==== Fit Table ====
 output$fit_table_lca <- renderDT({
     df <- fit_lca()
+    #max_APCP_overall  <- max(df$APCP_overall, na.rm = TRUE)
+    aic_vals <- sort(unique(df$AIC))
+    bic_vals <- sort(unique(df$BIC))
+   # ent_vals <- sort(unique(df$Entropy), decreasing = TRUE)
+    apcp_vals  <- sort(unique(df$Av_Prob), decreasing = TRUE)
+    min_prob_vals  <- sort(unique(df$Min_Prob), decreasing = TRUE)
+    
+  
     DT::datatable(df,extensions = 'Buttons',
                   options = list(scrollX = TRUE, dom = 'B',
                                  buttons = list(
@@ -147,8 +223,43 @@ output$fit_table_lca <- renderDT({
                                      text = 'Export Excel',
                                      filename = paste0('Fit Comparison LCA')
                                    ))), 
-                  rownames = FALSE)
-})
+                  rownames = FALSE) %>% 
+      formatStyle('AIC',
+                  backgroundColor = styleEqual(
+                    c(aic_vals[1], aic_vals[2]),
+                    c('lightgreen', 'khaki')
+                  ),
+                  fontWeight = styleEqual(aic_vals[1], 'bold')
+      ) %>%
+      formatStyle('BIC',
+                  backgroundColor = styleEqual(
+                    c(bic_vals[1], bic_vals[2]),
+                    c('lightgreen', 'khaki')
+                  ),
+                  fontWeight = styleEqual(bic_vals[1], 'bold')
+      ) %>%
+      # formatStyle('Entropy',
+      #             backgroundColor = styleEqual(
+      #               c(ent_vals[1], ent_vals[2]),
+      #               c('lightgreen', 'khaki')
+      #             ),
+      #             fontWeight = styleEqual(ent_vals[1], 'bold')
+      # ) %>%
+      formatStyle('Av_Prob',
+                  backgroundColor = styleEqual(
+                    c(apcp_vals[1], apcp_vals[2]),
+                    c('lightgreen', 'khaki')
+                  ),
+                  fontWeight = styleEqual(apcp_vals[1], 'bold')
+      ) %>% 
+      formatStyle('Min_Prob',
+                  backgroundColor = styleEqual(
+                    c(min_prob_vals[1], min_prob_vals[2]),
+                    c('lightgreen', 'khaki')
+                  ),
+                  fontWeight = styleEqual(min_prob_vals[1], 'bold')
+      )
+}, server = FALSE)
 
 # ==== Fit Plot (AIC/BIC) ====
 fit_plot_lca_reactive <- reactive({
@@ -204,8 +315,8 @@ smallest_class_plot_lca_reactive <- reactive({
   # Plot bar horizontal
   ggplot(smallest_df, aes(x = model, y = Percent, fill = model)) +
     geom_col(width = 0.5) +
-    geom_text(aes(label = paste0(Percent, "%[n=", N, "]")), hjust = 0, size = 4) +
-    coord_flip() +
+    geom_text(aes(label = paste0(Percent, "%")), size = 4) +
+   # coord_flip() +
     scale_y_continuous(limits = c(0, max(smallest_df$Percent)+18)) +
     labs(x = "Model", y = "Percentage") +
     theme_minimal(base_size = 14) +
@@ -221,6 +332,11 @@ output$download_plot_classSize_LCA <- make_download_plot(
   plot_reactive = smallest_class_plot_lca_reactive,
   filename_prefix = "BestPlot_LPA"
 )
+
+observeEvent(input$best_class_lca, {
+  req(input$best_class_lca)
+  best_c_r(as.numeric(input$best_class_lca))
+}, ignoreInit = TRUE)
 
 # ==== Input nama class ====
 output$class_name_inputs_lca <- renderUI({
@@ -354,9 +470,9 @@ summary_data_lca <- reactive({
   
   # === 1. Ukuran kelas ===
   class_size <- data.frame(
-    base::table(model_k$predclass)) %>% 
-    dplyr::rename(Class = Var1, N = Freq) %>% 
-    dplyr::mutate(Percent=round(100*N/sum(N),2)) 
+    base::table(model_k$predclass)) %>%
+    dplyr::rename(Class = Var1, N = Freq) %>%
+    dplyr::mutate(Percent=round(100*N/sum(N),2))
   class_size$Class <- class_names[class_size$Class]
   
   # === 2. Probabilitas kategori (adaptasi dari plot Girafe) ===
@@ -409,13 +525,13 @@ output$class_size_table_lca <- renderDT({
                                  list(
                                    extend = 'csv',
                                    text = 'Export CSV',
-                                   filename = paste0('Class Size')  
+                                   filename = paste0('Class Size')
                                  ),
                                  list(
                                    extend = 'excel',
                                    text = 'Export Excel',
                                    filename = paste0('Class Size')
-                                 ))), 
+                                 ))),
                 rownames = FALSE)
 })
 
@@ -423,20 +539,20 @@ output$probability_table_lca <- renderDT({
   df <- summary_data_lca()$probability
   numeric_cols <- which(sapply(df, function(x) is.numeric(x)))
   DT::datatable(df,extensions = 'Buttons',
-                options = list(scrollX = TRUE, pageLength=25, 
+                options = list(scrollX = TRUE, pageLength=25,
                                dom = 'Brtp',
                                buttons = list(
                                  list(
                                    extend = 'csv',
                                    text = 'Export CSV',
-                                   filename = paste0('Class Probability')  
+                                   filename = paste0('Class Probability')
                                  ),
                                  list(
                                    extend = 'excel',
                                    text = 'Export Excel',
                                    filename = paste0('Class Probability')
-                                 ))), 
-                rownames = FALSE) %>% 
+                                 ))),
+                rownames = FALSE) %>%
     formatRound(columns = numeric_cols, digits = 2)
 })
 
@@ -458,9 +574,20 @@ output$profile_table_lca <- renderDT({
   df$Class <- model_k$predclass
   df$Class <- class_names[df$Class]
   
-  df <- df[, c(id_cols, input$vars_lca, "Class")]
+  #df <- df[, c(id_cols, input$vars_lca, "Class")]
+  # --- Posterior probabilities ---
+  posterior_df <- as.data.frame(round(model_k$posterior,2))
+  colnames(posterior_df) <- paste0("Posterior_Prob_", class_names)
+  numeric_cols <- which(sapply(posterior_df, is.numeric))
   
-  numeric_cols <- which(sapply(df, is.numeric))
+  # Gabungkan: ID + vars + posterior + Class
+  df <- cbind(
+    df[, c(id_cols, input$vars_lca)],
+    posterior_df,
+    Class = df$Class
+  )
+  # Buat kolom join (kombinasi respons)
+  
   DT::datatable(df,extensions = 'Buttons',
                 options = list(scrollX = TRUE, pageLength=25,
                                dom = 'Brtp',
@@ -468,17 +595,16 @@ output$profile_table_lca <- renderDT({
                                  list(
                                    extend = 'csv',
                                    text = 'Export CSV',
-                                   filename = paste0('LCA Result with ', input$best_class_lca, ' Classes')  
+                                   filename = paste0('LCA Result with ', input$best_class_lca, ' Classes')
                                  ),
                                  list(
                                    extend = 'excel',
                                    text = 'Export Excel',
-                                   filename = paste0('LCA Result with', input$best_class_lca, ' Classes') 
-                                 ))), 
-                rownames = TRUE) %>% 
-    formatRound(columns = numeric_cols, digits = 2)
+                                   filename = paste0('LCA Result with', input$best_class_lca, ' Classes')
+                                 ))),
+                rownames = TRUE)
   
-})
+}, server = FALSE)
 
 
 }
