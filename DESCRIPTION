@@ -1,7 +1,7 @@
 Package: projectLSA
 Title: Shiny Application for Latent Structure Analysis with a Graphical
         User Interface
-Version: 0.0.8
+Version: 0.0.9
 Authors@R: 
     c(
       person(
@@ -34,21 +34,24 @@ Description: Provides an interactive Shiny-based toolkit for conducting latent s
 License: MIT + file LICENSE
 Depends: R (>= 4.0.0)
 Encoding: UTF-8
-Imports: colourpicker, data.table, dplyr, DT, ggiraph, ggplot2, glca,
-        haven, lavaan, mclust, mirt, plotly, poLCA, psych, purrr,
-        readr, readxl, rlang, semPlot, semptools, shiny, shinyWidgets,
-        stats, stringr, tibble, tidyr, tidyLPA, tidyverse, viridisLite
-Suggests: knitr, pkgdown, rmarkdown
-RoxygenNote: 7.3.3
+Imports: colourpicker, data.table, dplyr, DT, flextable, ggiraph,
+        ggplot2, glca, haven, kableExtra, knitr, lavaan, magick,
+        mclust, mirt, officer, plotly, poLCA, psych, purrr, readr,
+        readxl, rlang, rmarkdown, scales, semPlot, semptools, shiny,
+        shinyWidgets, stats, stringr, tibble, tidyr, tidyLPA,
+        tidyverse, viridisLite
+Suggests: pkgdown, testthat (>= 3.0.0)
 VignetteBuilder: knitr
 URL: https://github.com/hdmeasure/projectLSA
 BugReports: https://github.com/hdmeasure/projectLSA/issues
+Config/roxygen2/version: 8.0.0
+Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2026-02-07 23:07:42 UTC; hasandjidu
+Packaged: 2026-05-09 10:58:31 UTC; hasandjidu
 Author: Hasan Djidu [aut, cre] (ORCID: <https://orcid.org/0000-0003-1110-6815>),
   Heri Retnawati [ctb] (ORCID: <https://orcid.org/0000-0002-1792-5873>),
   Samsul Hadi [ctb] (ORCID: <https://orcid.org/0000-0003-3437-2542>),
   Haryanto [ctb] (ORCID: <https://orcid.org/0000-0003-3322-904X>)
 Maintainer: Hasan Djidu <hasandjidu@gmail.com>
 Repository: CRAN
-Date/Publication: 2026-02-07 23:20:03 UTC
+Date/Publication: 2026-05-09 11:30:02 UTC
