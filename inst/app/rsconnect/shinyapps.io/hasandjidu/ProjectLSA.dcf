@@ -5,7 +5,7 @@ account: hasandjidu
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 15760343
-bundleId: 11986885
+bundleId: 12449954
 url: https://measure.shinyapps.io/ProjectLSA/
 version: 1
 asMultiple: FALSE
